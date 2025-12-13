@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ren:*)",
+      "Bash(cat:*)",
+      "Bash(echo:*)",
+      "Bash(dir \"C:\\Users\\FAHMI\\development\\echo-backend\\Infrastructure\\Exceptions\" /b)",
+      "Bash(dir \"C:\\Users\\FAHMI\\development\\otc-service\" /b)"
+    ]
+  }
+}
