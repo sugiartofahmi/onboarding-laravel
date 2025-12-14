@@ -2,42 +2,42 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Backoffice\Category\Observers;
+namespace App\Domain\Backoffice\User\Observers;
 
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
-use App\Models\Category;
+use App\Models\User;
 
-class CategoryObserver
+class UserObserver
 {
     public function __construct(
         private AuditLogService $auditLogService
     ) {}
 
-    public function created(Category $category): void
+    public function created(User $user): void
     {
         $this->auditLogService->logModelEvent(
-            model: $category,
+            model: $user,
             action: AuditLogActionType::CREATED,
-            description: "Created Category: {$category->name}"
+            description: "Created User: {$user->name} ({$user->email})"
         );
     }
 
-    public function updated(Category $category): void
+    public function updated(User $user): void
     {
         $this->auditLogService->logModelEvent(
-            model: $category,
+            model: $user,
             action: AuditLogActionType::UPDATED,
-            description: "Updated Category: {$category->name}"
+            description: "Updated User: {$user->name} ({$user->email})"
         );
     }
 
-    public function deleted(Category $category): void
+    public function deleted(User $user): void
     {
         $this->auditLogService->logModelEvent(
-            model: $category,
+            model: $user,
             action: AuditLogActionType::DELETED,
-            description: "Deleted Category: {$category->name}"
+            description: "Deleted User: {$user->name} ({$user->email})"
         );
     }
 }
