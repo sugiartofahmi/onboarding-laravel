@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\API\Category\Messages;
+namespace App\Domain\Backoffice\Category\Messages;
 
 class CategoryMessage
 {

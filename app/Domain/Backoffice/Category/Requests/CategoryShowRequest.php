@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\API\Category\Requests;
+namespace App\Domain\Backoffice\Category\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 

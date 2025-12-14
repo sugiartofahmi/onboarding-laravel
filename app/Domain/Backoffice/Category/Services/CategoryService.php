@@ -2,26 +2,29 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\API\Category\Services;
+namespace App\Domain\Backoffice\Category\Services;
 
-use App\Domain\API\Category\Requests\CategoryCreateRequest;
-use App\Domain\API\Category\Requests\CategoryIndexRequest;
-use App\Domain\API\Category\Requests\CategoryUpdateRequest;
-use App\Domain\API\Category\Responses\CategoryCreateResponse;
-use App\Domain\API\Category\Responses\CategoryDeleteResponse;
-use App\Domain\API\Category\Responses\CategoryIndexResponse;
-use App\Domain\API\Category\Responses\CategoryShowResponse;
-use App\Domain\API\Category\Responses\CategoryUpdateResponse;
+use App\Domain\Backoffice\Category\Requests\CategoryCreateRequest;
+use App\Domain\Backoffice\Category\Requests\CategoryIndexRequest;
+use App\Domain\Backoffice\Category\Requests\CategoryUpdateRequest;
+use App\Domain\Backoffice\Category\Responses\CategoryCreateResponse;
+use App\Domain\Backoffice\Category\Responses\CategoryDeleteResponse;
+use App\Domain\Backoffice\Category\Responses\CategoryIndexResponse;
+use App\Domain\Backoffice\Category\Responses\CategoryShowResponse;
+use App\Domain\Backoffice\Category\Responses\CategoryUpdateResponse;
 use App\Domain\Backoffice\Category\Repositories\CategoryQueryRepository;
 use App\Domain\Backoffice\Category\Repositories\CategoryStoreRepository;
 use App\Infrastructure\Exceptions\NotFoundException;
-use App\Domain\API\Category\Messages\CategoryMessage;
+use App\Domain\Backoffice\Category\Messages\CategoryMessage;
+use App\Infrastructure\Enums\AuditActionType;
+use App\Infrastructure\Services\AuditService;
 
 class CategoryService
 {
     public function __construct(
         private CategoryQueryRepository $categoryQueryRepository,
-        private CategoryStoreRepository $categoryStoreRepository
+        private CategoryStoreRepository $categoryStoreRepository,
+        private AuditService $auditService
     ) {}
 
     public function index(CategoryIndexRequest $request): CategoryIndexResponse
@@ -30,6 +33,11 @@ class CategoryService
         $filters = $request->only(['search']);
 
         $categories = $this->categoryQueryRepository->index($perPage, $filters);
+
+        $this->auditService->logViewEvent(
+            action: AuditActionType::VIEWED,
+            description: 'Viewed Category List'
+        );
 
         return new CategoryIndexResponse($categories);
     }
@@ -41,6 +49,11 @@ class CategoryService
         if (!$category) {
             throw new NotFoundException(CategoryMessage::NOT_FOUND);
         }
+
+        $this->auditService->logViewEvent(
+            action: AuditActionType::VIEWED,
+            description: "Viewed Category: {$category->name}"
+        );
 
         return new CategoryShowResponse($category);
     }
