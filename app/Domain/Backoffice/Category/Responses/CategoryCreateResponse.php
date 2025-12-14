@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\API\Category\Responses;
+namespace App\Domain\Backoffice\Category\Responses;
 
 use App\Models\Category;
 
