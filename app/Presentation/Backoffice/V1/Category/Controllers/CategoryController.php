@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Presentation\Backoffice\V1\Category\Controllers;
 
-use App\Domain\API\Category\Messages\CategoryMessage;
-use App\Domain\API\Category\Requests\CategoryCreateRequest;
-use App\Domain\API\Category\Requests\CategoryDeleteRequest;
-use App\Domain\API\Category\Requests\CategoryIndexRequest;
-use App\Domain\API\Category\Requests\CategoryShowRequest;
-use App\Domain\API\Category\Requests\CategoryUpdateRequest;
-use App\Domain\API\Category\Services\CategoryService;
+use App\Domain\Backoffice\Category\Messages\CategoryMessage;
+use App\Domain\Backoffice\Category\Requests\CategoryCreateRequest;
+use App\Domain\Backoffice\Category\Requests\CategoryDeleteRequest;
+use App\Domain\Backoffice\Category\Requests\CategoryIndexRequest;
+use App\Domain\Backoffice\Category\Requests\CategoryShowRequest;
+use App\Domain\Backoffice\Category\Requests\CategoryUpdateRequest;
+use App\Domain\Backoffice\Category\Services\CategoryService;
 use App\Domain\Backoffice\Permission\Constants\PermissionConstant;
 use App\Infrastructure\Attributes\PermissionAttribute;
 use App\Infrastructure\Enums\HttpStatusCode;
@@ -31,9 +31,8 @@ class CategoryController extends BaseController
         $response = $this->categoryService->index($request);
 
         return (new ApiPaginationResponse(
-            data: $response->toArray(),
             paginator: $response->getPaginator(),
-            message: '',
+            message: CategoryMessage::INDEX_SUCCESS,
             statusCode: HttpStatusCode::OK
         ))->toResponse();
     }
@@ -45,7 +44,7 @@ class CategoryController extends BaseController
 
         return (new ApiDataResponse(
             data: $response->toArray(),
-            message: '',
+            message: CategoryMessage::SHOW_SUCCESS,
             statusCode: HttpStatusCode::OK
         ))->toResponse();
     }

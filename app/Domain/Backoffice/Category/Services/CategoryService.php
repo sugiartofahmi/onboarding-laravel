@@ -14,17 +14,17 @@ use App\Domain\Backoffice\Category\Responses\CategoryShowResponse;
 use App\Domain\Backoffice\Category\Responses\CategoryUpdateResponse;
 use App\Domain\Backoffice\Category\Repositories\CategoryQueryRepository;
 use App\Domain\Backoffice\Category\Repositories\CategoryStoreRepository;
+use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
+use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
 use App\Infrastructure\Exceptions\NotFoundException;
 use App\Domain\Backoffice\Category\Messages\CategoryMessage;
-use App\Infrastructure\Enums\AuditActionType;
-use App\Infrastructure\Services\AuditService;
 
 class CategoryService
 {
     public function __construct(
         private CategoryQueryRepository $categoryQueryRepository,
         private CategoryStoreRepository $categoryStoreRepository,
-        private AuditService $auditService
+        private AuditLogService $auditLogService
     ) {}
 
     public function index(CategoryIndexRequest $request): CategoryIndexResponse
@@ -34,8 +34,8 @@ class CategoryService
 
         $categories = $this->categoryQueryRepository->index($perPage, $filters);
 
-        $this->auditService->logViewEvent(
-            action: AuditActionType::VIEWED,
+        $this->auditLogService->logViewEvent(
+            action: AuditLogActionType::VIEWED,
             description: 'Viewed Category List'
         );
 
@@ -50,8 +50,8 @@ class CategoryService
             throw new NotFoundException(CategoryMessage::NOT_FOUND);
         }
 
-        $this->auditService->logViewEvent(
-            action: AuditActionType::VIEWED,
+        $this->auditLogService->logViewEvent(
+            action: AuditLogActionType::VIEWED,
             description: "Viewed Category: {$category->name}"
         );
 
