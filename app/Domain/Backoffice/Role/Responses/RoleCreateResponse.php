@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Backoffice\Role\Responses;
+
+use App\Domain\Backoffice\Role\Messages\RoleMessage;
+use App\Models\Role;
+use Illuminate\Http\JsonResponse;
+
+class RoleCreateResponse
+{
+    public function __construct(
+        private Role $role
+    ) {}
+
+    public function toJsonResponse(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => RoleMessage::CREATE_SUCCESS,
+            'data' => $this->role,
+        ], 201);
+    }
+}
