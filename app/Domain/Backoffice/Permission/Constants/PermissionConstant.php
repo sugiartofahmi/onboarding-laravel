@@ -35,4 +35,19 @@ class PermissionConstant
     public const READ_USER = 'read_user';
     public const UPDATE_USER = 'update_user';
     public const DELETE_USER = 'delete_user';
+
+    // File
+    public const UPLOAD_FILE = 'upload_file';
+
+    // Role
+    public const CREATE_ROLE = 'create_role';
+    public const READ_ROLE = 'read_role';
+    public const UPDATE_ROLE = 'update_role';
+    public const DELETE_ROLE = 'delete_role';
+
+    // Permission
+    public const CREATE_PERMISSION = 'create_permission';
+    public const READ_PERMISSION = 'read_permission';
+    public const UPDATE_PERMISSION = 'update_permission';
+    public const DELETE_PERMISSION = 'delete_permission';
 }
