@@ -16,11 +16,14 @@ use App\Domain\Backoffice\Role\Constants\RoleConstant;
 use App\Domain\Backoffice\Role\Repositories\RoleQueryRepository;
 use App\Domain\Backoffice\User\Repositories\UserQueryRepository;
 use App\Domain\Backoffice\User\Repositories\UserStoreRepository;
+use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
+use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
 use App\Infrastructure\Exceptions\BadRequestException;
 use App\Infrastructure\Exceptions\UnauthenticatedException;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthService
@@ -28,25 +31,36 @@ class AuthService
     public function __construct(
         private UserQueryRepository $userQueryRepository,
         private UserStoreRepository $userStoreRepository,
-        private RoleQueryRepository $roleQueryRepository
+        private RoleQueryRepository $roleQueryRepository,
+        private AuditLogService $auditLogService
     ) {}
 
     public function register(RegisterRequest $request): RegisterResponse
     {
-        $viewerRole = $this->roleQueryRepository->findOneByGuardName(RoleConstant::VIEWER);
+        try {
+            $viewerRole = $this->roleQueryRepository->findOneByGuardName(RoleConstant::VIEWER);
 
-        if (!$viewerRole) {
-            throw new BadRequestException(AuthErrorMessage::REGISTER_FAILED);
+            if (!$viewerRole) {
+                throw new BadRequestException(AuthErrorMessage::REGISTER_FAILED);
+            }
+
+            $user = DB::transaction(function () use ($request, $viewerRole) {
+                $user = $this->userStoreRepository->create($request->validated());
+                $user->roles()->attach($viewerRole->id);
+
+                return $user;
+            });
+
+            return new RegisterResponse($user);
+        } catch (\Exception $e) {
+            Log::error('Failed to register User', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+
+            throw $e;
         }
-
-        $user = DB::transaction(function () use ($request, $viewerRole) {
-            $user = $this->userStoreRepository->create($request->validated());
-            $user->roles()->attach($viewerRole->id);
-
-            return $user;
-        });
-
-        return new RegisterResponse($user);
     }
 
     public function login(LoginRequest $request): LoginResponse
@@ -60,6 +74,11 @@ class AuthService
         $roles = $this->roleQueryRepository->findManyByUserId($user->id);
         $token = $this->createToken($user);
 
+        $this->auditLogService->logAuthEvent(
+            action: AuditLogActionType::LOGIN,
+            description: "User Logged In: {$user->name} ({$user->email})"
+        );
+
         return new LoginResponse($user, $token, $roles);
     }
 
@@ -72,6 +91,13 @@ class AuthService
 
     public function logout(): void
     {
+        $user = JWTAuth::user();
+
+        $this->auditLogService->logAuthEvent(
+            action: AuditLogActionType::LOGOUT,
+            description: "User Logged Out: {$user->name} ({$user->email})"
+        );
+
         JWTAuth::invalidate(JWTAuth::getToken());
     }
 
