@@ -18,6 +18,7 @@ use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
 use App\Infrastructure\Exceptions\NotFoundException;
 use App\Domain\Backoffice\Category\Messages\CategoryMessage;
+use Illuminate\Support\Facades\Log;
 
 class CategoryService
 {
@@ -60,42 +61,74 @@ class CategoryService
 
     public function create(CategoryCreateRequest $request): CategoryCreateResponse
     {
-        $category = $this->categoryStoreRepository->create([
-            'name' => $request->input('name'),
-            'slug' => $request->input('slug'),
-        ]);
+        try {
+            $category = $this->categoryStoreRepository->create([
+                'name' => $request->input('name'),
+                'slug' => $request->input('slug'),
+            ]);
 
-        return new CategoryCreateResponse($category);
+            return new CategoryCreateResponse($category);
+        } catch (\Exception $e) {
+            Log::error('Failed to create Category', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+
+            throw $e;
+        }
     }
 
     public function update(string $id, CategoryUpdateRequest $request): CategoryUpdateResponse
     {
-        $category = $this->categoryQueryRepository->findOneById($id);
+        try {
+            $category = $this->categoryQueryRepository->findOneById($id);
 
-        if (!$category) {
-            throw new NotFoundException(CategoryMessage::NOT_FOUND);
+            if (!$category) {
+                throw new NotFoundException(CategoryMessage::NOT_FOUND);
+            }
+
+            $data = array_filter([
+                'name' => $request->input('name'),
+                'slug' => $request->input('slug'),
+            ], fn ($value) => $value !== null);
+
+            $category = $this->categoryStoreRepository->update($category, $data);
+
+            return new CategoryUpdateResponse($category);
+        } catch (\Exception $e) {
+            Log::error('Failed to update Category', [
+                'entity_id' => $id,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+
+            throw $e;
         }
-
-        $data = array_filter([
-            'name' => $request->input('name'),
-            'slug' => $request->input('slug'),
-        ], fn ($value) => $value !== null);
-
-        $category = $this->categoryStoreRepository->update($category, $data);
-
-        return new CategoryUpdateResponse($category);
     }
 
     public function delete(string $id): CategoryDeleteResponse
     {
-        $category = $this->categoryQueryRepository->findOneById($id);
+        try {
+            $category = $this->categoryQueryRepository->findOneById($id);
 
-        if (!$category) {
-            throw new NotFoundException(CategoryMessage::NOT_FOUND);
+            if (!$category) {
+                throw new NotFoundException(CategoryMessage::NOT_FOUND);
+            }
+
+            $this->categoryStoreRepository->delete($category);
+
+            return new CategoryDeleteResponse($id);
+        } catch (\Exception $e) {
+            Log::error('Failed to delete Category', [
+                'entity_id' => $id,
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+
+            throw $e;
         }
-
-        $this->categoryStoreRepository->delete($category);
-
-        return new CategoryDeleteResponse($id);
     }
 }
