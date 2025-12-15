@@ -19,6 +19,8 @@ class RolePermissionSeeder extends Seeder
             'stock_movement' => 'Stock Movement',
             'sales_order' => 'Sales Order',
             'user' => 'User',
+            'role' => 'Role',
+            'permission' => 'Permission',
         ];
 
         // Define actions with display names
