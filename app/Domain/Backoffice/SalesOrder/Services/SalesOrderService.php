@@ -23,6 +23,8 @@ use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
 use App\Infrastructure\Exceptions\BadRequestException;
 use App\Infrastructure\Exceptions\NotFoundException;
+use App\Infrastructure\Helpers\RedisDistributedLockService;
+use App\Models\SalesOrder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -34,7 +36,8 @@ class SalesOrderService
         private SalesOrderStoreRepository $salesOrderStoreRepository,
         private ProductQueryRepository $productQueryRepository,
         private StockMovementStoreRepository $stockMovementStoreRepository,
-        private AuditLogService $auditLogService
+        private AuditLogService $auditLogService,
+        private RedisDistributedLockService $lockService
     ) {}
 
     public function index(SalesOrderIndexRequest $request): SalesOrderIndexResponse
@@ -67,60 +70,20 @@ class SalesOrderService
 
     public function create(SalesOrderCreateRequest $request): SalesOrderCreateResponse
     {
+        $user = JWTAuth::user();
+        $items = $request->input('items');
+
+        $lockKeys = collect($items)
+            ->pluck('product_id')
+            ->map(fn ($id) => "product:{$id}")
+            ->toArray();
+
+        if (!$this->lockService->acquireMultipleLocks($lockKeys)) {
+            throw new BadRequestException(SalesOrderErrorMessage::LOCK_ACQUISITION_FAILED);
+        }
+
         try {
-            $user = JWTAuth::user();
-
-            $salesOrder = DB::transaction(function () use ($request, $user) {
-                // 1. Validate all products exist and have sufficient stock
-                $items = $request->input('items');
-                $totalAmount = 0;
-
-                foreach ($items as $item) {
-                    $product = $this->productQueryRepository->findOneById($item['product_id']);
-
-                    if (!$product) {
-                        throw new NotFoundException(ProductErrorMessage::NOT_FOUND);
-                    }
-
-                    if ($product->stock < $item['quantity']) {
-                        throw new BadRequestException(SalesOrderErrorMessage::INSUFFICIENT_STOCK);
-                    }
-
-                    $totalAmount += $product->price * $item['quantity'];
-                }
-
-                // 2. Create sales order
-                $salesOrder = $this->salesOrderStoreRepository->create([
-                    'user_id' => $user->id,
-                    'total_amount' => $totalAmount,
-                    'status' => OrderStatusType::PENDING->value,
-                ]);
-
-                // 3. Create sales order items
-                foreach ($items as $item) {
-                    $product = $this->productQueryRepository->findOneById($item['product_id']);
-
-                    $salesOrder->items()->create([
-                        'product_id' => $product->id,
-                        'quantity' => $item['quantity'],
-                        'price' => $product->price,
-                        'subtotal' => $product->price * $item['quantity'],
-                    ]);
-                }
-
-                // 4. Create stock movements (OUT)
-                foreach ($items as $item) {
-                    $this->stockMovementStoreRepository->create([
-                        'product_id' => $item['product_id'],
-                        'user_id' => $user->id,
-                        'type' => StockMovementType::OUT->value,
-                        'quantity' => $item['quantity'],
-                        'note' => "Sales Order: {$salesOrder->id}",
-                    ]);
-                }
-
-                return $salesOrder->fresh(['items.product']);
-            });
+            $salesOrder = $this->processOrder($items, $user);
 
             return new SalesOrderCreateResponse($salesOrder);
         } catch (\Exception $e) {
@@ -131,7 +94,63 @@ class SalesOrderService
             ]);
 
             throw $e;
+        } finally {
+            $this->lockService->releaseMultipleLocks($lockKeys);
         }
+    }
+
+    private function processOrder(array $items, $user): SalesOrder
+    {
+        return DB::transaction(function () use ($items, $user) {
+            // 1. Validate all products exist and have sufficient stock
+            $totalAmount = 0;
+
+            foreach ($items as $item) {
+                $product = $this->productQueryRepository->findOneById($item['product_id']);
+
+                if (!$product) {
+                    throw new NotFoundException(ProductErrorMessage::NOT_FOUND);
+                }
+
+                if ($product->stock < $item['quantity']) {
+                    throw new BadRequestException(SalesOrderErrorMessage::INSUFFICIENT_STOCK);
+                }
+
+                $totalAmount += $product->price * $item['quantity'];
+            }
+
+            // 2. Create sales order
+            $salesOrder = $this->salesOrderStoreRepository->create([
+                'user_id' => $user->id,
+                'total_amount' => $totalAmount,
+                'status' => OrderStatusType::PENDING->value,
+            ]);
+
+            // 3. Create sales order items
+            foreach ($items as $item) {
+                $product = $this->productQueryRepository->findOneById($item['product_id']);
+
+                $salesOrder->items()->create([
+                    'product_id' => $product->id,
+                    'quantity' => $item['quantity'],
+                    'price' => $product->price,
+                    'subtotal' => $product->price * $item['quantity'],
+                ]);
+            }
+
+            // 4. Create stock movements (OUT)
+            foreach ($items as $item) {
+                $this->stockMovementStoreRepository->create([
+                    'product_id' => $item['product_id'],
+                    'user_id' => $user->id,
+                    'type' => StockMovementType::OUT->value,
+                    'quantity' => $item['quantity'],
+                    'note' => "Sales Order: {$salesOrder->id}",
+                ]);
+            }
+
+            return $salesOrder->fresh(['items.product']);
+        });
     }
 
     public function update(string $id, SalesOrderUpdateRequest $request): SalesOrderUpdateResponse

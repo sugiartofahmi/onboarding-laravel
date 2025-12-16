@@ -17,7 +17,9 @@ use App\Domain\Backoffice\Product\Repositories\ProductQueryRepository;
 use App\Domain\Backoffice\Product\Repositories\ProductStoreRepository;
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
+use App\Infrastructure\Exceptions\BadRequestException;
 use App\Infrastructure\Exceptions\NotFoundException;
+use App\Infrastructure\Helpers\RedisDistributedLockService;
 use App\Infrastructure\Storage\Services\StorageService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -28,7 +30,8 @@ class ProductService
         private ProductQueryRepository $productQueryRepository,
         private ProductStoreRepository $productStoreRepository,
         private AuditLogService $auditLogService,
-        private StorageService $storageService
+        private StorageService $storageService,
+        private RedisDistributedLockService $lockService
     ) {}
 
     public function index(ProductIndexRequest $request): ProductIndexResponse
@@ -99,6 +102,13 @@ class ProductService
 
     public function update(string $id, ProductUpdateRequest $request): ProductUpdateResponse
     {
+        $lockKey = "product:{$id}";
+        $needsLock = $request->has('stock');
+
+        if ($needsLock && !$this->lockService->acquireLock($lockKey)) {
+            throw new BadRequestException(ProductErrorMessage::LOCK_ACQUISITION_FAILED);
+        }
+
         try {
             $product = $this->productQueryRepository->findOneById($id);
 
@@ -147,6 +157,10 @@ class ProductService
             ]);
 
             throw $e;
+        } finally {
+            if ($needsLock) {
+                $this->lockService->releaseLock($lockKey);
+            }
         }
     }
 
