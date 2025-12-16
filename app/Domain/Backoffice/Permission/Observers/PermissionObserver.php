@@ -6,7 +6,7 @@ namespace App\Domain\Backoffice\Permission\Observers;
 
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
 use App\Domain\Backoffice\Permission\Services\PermissionService;
-use App\Infrastructure\Enums\AuditActionType;
+use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Models\Permission;
 use Illuminate\Support\Str;
 
@@ -31,7 +31,7 @@ class PermissionObserver
     {
         $this->auditLogService->logModelEvent(
             model: $permission,
-            action: AuditActionType::CREATED,
+            action: AuditLogActionType::CREATED,
             description: "Created Permission: {$permission->name}"
         );
     }
@@ -43,7 +43,7 @@ class PermissionObserver
 
         $this->auditLogService->logModelEvent(
             model: $permission,
-            action: AuditActionType::UPDATED,
+            action: AuditLogActionType::UPDATED,
             description: "Updated Permission: {$permission->name}"
         );
     }
@@ -55,7 +55,7 @@ class PermissionObserver
 
         $this->auditLogService->logModelEvent(
             model: $permission,
-            action: AuditActionType::DELETED,
+            action: AuditLogActionType::DELETED,
             description: "Deleted Permission: {$permission->name}"
         );
     }

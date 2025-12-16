@@ -21,6 +21,8 @@ class RolePermissionSeeder extends Seeder
             'user' => 'User',
             'role' => 'Role',
             'permission' => 'Permission',
+            'audit_log' => 'Audit Log',
+            'dashboard' => 'Dashboard',
         ];
 
         // Define actions with display names
@@ -62,7 +64,7 @@ class RolePermissionSeeder extends Seeder
             Permission::all()->pluck('id')->toArray()
         );
 
-        // Staff: CRUD product, CRUD stock_movement only
+        // Staff: CRUD product, CRUD stock_movement, read dashboard & audit_log
         $staffPermissions = [
             'create_product',
             'read_product',
@@ -72,6 +74,8 @@ class RolePermissionSeeder extends Seeder
             'read_stock_movement',
             'update_stock_movement',
             'delete_stock_movement',
+            'read_dashboard',
+            'read_audit_log',
         ];
         $staffRole->permissions()->attach(
             Permission::whereIn('guard_name', $staffPermissions)->pluck('id')->toArray()

@@ -6,6 +6,7 @@ namespace App\Domain\Backoffice\Product\Observers;
 
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
+use App\Domain\Backoffice\Dashboard\Repositories\StatisticsSummaryStoreRepository;
 use App\Domain\Backoffice\Product\Enums\ProductStatusType;
 use App\Infrastructure\Storage\Services\StorageService;
 use App\Models\Product;
@@ -15,7 +16,8 @@ class ProductObserver
 {
     public function __construct(
         private AuditLogService $auditLogService,
-        private StorageService $storageService
+        private StorageService $storageService,
+        private StatisticsSummaryStoreRepository $statisticsSummaryStoreRepository
     ) {}
 
     public function creating(Product $product): void
@@ -35,6 +37,12 @@ class ProductObserver
 
     public function created(Product $product): void
     {
+        $this->statisticsSummaryStoreRepository->incrementTotalProducts();
+
+        if ($this->isLowStock($product->status)) {
+            $this->statisticsSummaryStoreRepository->incrementLowStockCount();
+        }
+
         $this->auditLogService->logModelEvent(
             model: $product,
             action: AuditLogActionType::CREATED,
@@ -44,6 +52,20 @@ class ProductObserver
 
     public function updated(Product $product): void
     {
+        if ($product->isDirty('status')) {
+            $oldStatus = $product->getOriginal('status');
+            $newStatus = $product->status;
+
+            $wasLowStock = $this->isLowStock($oldStatus);
+            $isNowLowStock = $this->isLowStock($newStatus);
+
+            if (!$wasLowStock && $isNowLowStock) {
+                $this->statisticsSummaryStoreRepository->incrementLowStockCount();
+            } elseif ($wasLowStock && !$isNowLowStock) {
+                $this->statisticsSummaryStoreRepository->decrementLowStockCount();
+            }
+        }
+
         $this->auditLogService->logModelEvent(
             model: $product,
             action: AuditLogActionType::UPDATED,
@@ -53,6 +75,12 @@ class ProductObserver
 
     public function deleted(Product $product): void
     {
+        $this->statisticsSummaryStoreRepository->decrementTotalProducts();
+
+        if ($this->isLowStock($product->status)) {
+            $this->statisticsSummaryStoreRepository->decrementLowStockCount();
+        }
+
         // Delete thumbnail file
         if ($product->thumbnail_path) {
             $this->storageService->delete($product->thumbnail_path);
@@ -99,5 +127,13 @@ class ProductObserver
         } else {
             $product->status = ProductStatusType::AVAILABLE->value;
         }
+    }
+
+    private function isLowStock(?string $status): bool
+    {
+        return in_array($status, [
+            ProductStatusType::LOW_STOCK->value,
+            ProductStatusType::OUT_OF_STOCK->value,
+        ], true);
     }
 }

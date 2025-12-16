@@ -29,7 +29,8 @@ class ExceptionHandler
 {
     public static function render(Throwable $e, Request $request): ?JsonResponse
     {
-        if (!$request->expectsJson()) {
+        // Always return JSON for API routes
+        if (!$request->expectsJson() && !$request->is('api/*', 'backoffice/*')) {
             return null;
         }
 

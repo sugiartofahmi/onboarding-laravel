@@ -29,7 +29,7 @@ class BaseController extends Controller
         }
 
         $request = app(Request::class);
-        $roleId = $request->query('role_id');
+        $roleId = $request->input('role_id');
 
         if (!$roleId) {
             return;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Backoffice\Role\Observers;
 
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
-use App\Infrastructure\Enums\AuditActionType;
+use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Models\Role;
 use Illuminate\Support\Str;
 
@@ -29,7 +29,7 @@ class RoleObserver
     {
         $this->auditLogService->logModelEvent(
             model: $role,
-            action: AuditActionType::CREATED,
+            action: AuditLogActionType::CREATED,
             description: "Created Role: {$role->name}"
         );
     }
@@ -38,7 +38,7 @@ class RoleObserver
     {
         $this->auditLogService->logModelEvent(
             model: $role,
-            action: AuditActionType::UPDATED,
+            action: AuditLogActionType::UPDATED,
             description: "Updated Role: {$role->name}"
         );
     }
@@ -47,7 +47,7 @@ class RoleObserver
     {
         $this->auditLogService->logModelEvent(
             model: $role,
-            action: AuditActionType::DELETED,
+            action: AuditLogActionType::DELETED,
             description: "Deleted Role: {$role->name}"
         );
     }

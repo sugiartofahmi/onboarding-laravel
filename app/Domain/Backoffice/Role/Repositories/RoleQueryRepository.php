@@ -54,4 +54,11 @@ class RoleQueryRepository
             $query->where('users.id', $userId);
         })->where('id', $roleId)->first();
     }
+
+    public function isExistByUserIdAndRoleId(string $userId, string $roleId): bool
+    {
+        return $this->model->whereHas('users', function ($query) use ($userId) {
+            $query->where('users.id', $userId);
+        })->where('id', $roleId)->exists();
+    }
 }

@@ -26,12 +26,12 @@ abstract class BaseQueryRequest extends FormRequest
 
     public function getPerPage(): int
     {
-        return $this->input('per_page', 10);
+        return (int) $this->input('per_page', 10);
     }
 
     public function getPage(): int
     {
-        return $this->input('page', 1);
+        return (int) $this->input('page', 1);
     }
 
     public function getSortBy(): string

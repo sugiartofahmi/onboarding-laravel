@@ -2,6 +2,7 @@
 
 use App\Presentation\Backoffice\V1\AuditLog\Controllers\AuditLogController;
 use App\Presentation\Backoffice\V1\Category\Controllers\CategoryController;
+use App\Presentation\Backoffice\V1\Dashboard\Controllers\DashboardController;
 use App\Presentation\Backoffice\V1\File\Controllers\FileController;
 use App\Presentation\Backoffice\V1\Permission\Controllers\PermissionController;
 use App\Presentation\Backoffice\V1\Product\Controllers\ProductController;
@@ -81,5 +82,12 @@ Route::prefix('v1')->middleware(['auth:api', 'authorization'])->group(function (
         Route::post('/', [PermissionController::class, 'store']);
         Route::put('/{id}', [PermissionController::class, 'update']);
         Route::delete('/{id}', [PermissionController::class, 'destroy']);
+    });
+
+    // Dashboard Routes
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/stats', [DashboardController::class, 'stats']);
+        Route::get('/sales-summary', [DashboardController::class, 'salesSummary']);
+        Route::get('/low-stock', [DashboardController::class, 'lowStock']);
     });
 });
