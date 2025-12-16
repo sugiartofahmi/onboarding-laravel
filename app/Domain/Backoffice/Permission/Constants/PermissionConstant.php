@@ -50,4 +50,7 @@ class PermissionConstant
     public const READ_PERMISSION = 'read_permission';
     public const UPDATE_PERMISSION = 'update_permission';
     public const DELETE_PERMISSION = 'delete_permission';
+
+    // Dashboard
+    public const READ_DASHBOARD = 'read_dashboard';
 }
