@@ -16,7 +16,7 @@ use App\Domain\Backoffice\Permission\Responses\PermissionDeleteResponse;
 use App\Domain\Backoffice\Permission\Responses\PermissionIndexResponse;
 use App\Domain\Backoffice\Permission\Responses\PermissionShowResponse;
 use App\Domain\Backoffice\Permission\Responses\PermissionUpdateResponse;
-use App\Infrastructure\Enums\AuditActionType;
+use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Infrastructure\Exceptions\ForbiddenException;
 use App\Infrastructure\Exceptions\NotFoundException;
 use Illuminate\Support\Facades\Cache;
@@ -63,7 +63,7 @@ class PermissionService
         $permissions = $this->permissionQueryRepository->index($request);
 
         $this->auditLogService->logViewEvent(
-            action: AuditActionType::VIEWED,
+            action: AuditLogActionType::VIEWED,
             description: 'Viewed Permission List'
         );
 
@@ -79,7 +79,7 @@ class PermissionService
         }
 
         $this->auditLogService->logViewEvent(
-            action: AuditActionType::VIEWED,
+            action: AuditLogActionType::VIEWED,
             description: "Viewed Permission: {$permission->name}"
         );
 

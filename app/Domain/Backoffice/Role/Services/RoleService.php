@@ -16,7 +16,7 @@ use App\Domain\Backoffice\Role\Responses\RoleDeleteResponse;
 use App\Domain\Backoffice\Role\Responses\RoleIndexResponse;
 use App\Domain\Backoffice\Role\Responses\RoleShowResponse;
 use App\Domain\Backoffice\Role\Responses\RoleUpdateResponse;
-use App\Infrastructure\Enums\AuditActionType;
+use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Infrastructure\Exceptions\NotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -34,7 +34,7 @@ class RoleService
         $roles = $this->roleQueryRepository->index($request);
 
         $this->auditLogService->logViewEvent(
-            action: AuditActionType::VIEWED,
+            action: AuditLogActionType::VIEWED,
             description: 'Viewed Role List'
         );
 
@@ -50,7 +50,7 @@ class RoleService
         }
 
         $this->auditLogService->logViewEvent(
-            action: AuditActionType::VIEWED,
+            action: AuditLogActionType::VIEWED,
             description: "Viewed Role: {$role->name}"
         );
 
