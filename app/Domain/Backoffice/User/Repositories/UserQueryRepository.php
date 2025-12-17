@@ -19,21 +19,9 @@ class UserQueryRepository
         $query = $this->model->query()->with(['roles']);
 
         $query = $this->applySearch($query, $request);
-        $query = $this->applyFilters($query, $request);
         $query = $this->applySorting($query, $request);
 
         return $query->paginate($request->getPerPage());
-    }
-
-    private function applyFilters(Builder $query, UserIndexRequest $request): Builder
-    {
-        if ($request->filled('role_id')) {
-            $query->whereHas('roles', function ($q) use ($request) {
-                $q->where('roles.id', $request->input('role_id'));
-            });
-        }
-
-        return $query;
     }
 
     private function applySorting(Builder $query, UserIndexRequest $request): Builder

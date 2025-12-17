@@ -15,7 +15,7 @@ use App\Domain\Backoffice\StockMovement\Responses\StockMovementShowResponse;
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
 use App\Infrastructure\Exceptions\BadRequestException;
-use App\Infrastructure\Exceptions\NotFoundException;
+use App\Infrastructure\Exceptions\DataNotFoundException;
 use App\Infrastructure\Helpers\RedisDistributedLockService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +47,7 @@ class StockMovementService
         $stockMovement = $this->stockMovementQueryRepository->findOneByIdWithRelations($id);
 
         if (!$stockMovement) {
-            throw new NotFoundException(StockMovementErrorMessage::NOT_FOUND);
+            throw new DataNotFoundException(StockMovementErrorMessage::NOT_FOUND);
         }
 
         $this->auditLogService->logViewEvent(

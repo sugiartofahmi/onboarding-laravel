@@ -16,7 +16,7 @@ use App\Domain\Backoffice\Category\Repositories\CategoryQueryRepository;
 use App\Domain\Backoffice\Category\Repositories\CategoryStoreRepository;
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
-use App\Infrastructure\Exceptions\NotFoundException;
+use App\Infrastructure\Exceptions\DataNotFoundException;
 use App\Domain\Backoffice\Category\Messages\CategoryMessage;
 use Illuminate\Support\Facades\Log;
 
@@ -33,7 +33,7 @@ class CategoryService
         $perPage = $request->input('per_page', 10);
         $filters = $request->only(['search']);
 
-        $categories = $this->categoryQueryRepository->index($perPage, $filters);
+        $categories = $this->categoryQueryRepository->index($request);
 
         $this->auditLogService->logViewEvent(
             action: AuditLogActionType::VIEWED,
@@ -48,7 +48,7 @@ class CategoryService
         $category = $this->categoryQueryRepository->findOneById($id);
 
         if (!$category) {
-            throw new NotFoundException(CategoryMessage::NOT_FOUND);
+            throw new DataNotFoundException(CategoryMessage::NOT_FOUND);
         }
 
         $this->auditLogService->logViewEvent(
@@ -85,7 +85,7 @@ class CategoryService
             $category = $this->categoryQueryRepository->findOneById($id);
 
             if (!$category) {
-                throw new NotFoundException(CategoryMessage::NOT_FOUND);
+                throw new DataNotFoundException(CategoryMessage::NOT_FOUND);
             }
 
             $data = array_filter([
@@ -114,7 +114,7 @@ class CategoryService
             $category = $this->categoryQueryRepository->findOneById($id);
 
             if (!$category) {
-                throw new NotFoundException(CategoryMessage::NOT_FOUND);
+                throw new DataNotFoundException(CategoryMessage::NOT_FOUND);
             }
 
             $this->categoryStoreRepository->delete($category);
