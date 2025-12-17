@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Backoffice\User\Requests;
 
-use App\Infrastructure\Requests\BaseQueryRequest;
+use App\Infrastructure\Helpers\BaseQueryRequest;
 
 class UserIndexRequest extends BaseQueryRequest
 {

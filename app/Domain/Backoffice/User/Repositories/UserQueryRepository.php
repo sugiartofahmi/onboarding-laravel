@@ -36,6 +36,36 @@ class UserQueryRepository
         return $query;
     }
 
+    private function applySorting(Builder $query, UserIndexRequest $request): Builder
+    {
+        $sortBy = $request->getSortBy();
+        $order = $request->getOrder();
+
+        $allowedSortColumns = ['id', 'name', 'email', 'created_at', 'updated_at'];
+
+        if (!in_array($sortBy, $allowedSortColumns)) {
+            $sortBy = 'created_at';
+        }
+
+        $query->orderBy($sortBy, $order);
+
+        return $query;
+
+    }
+
+    private function applySearch(Builder $query, UserIndexRequest $request): Builder
+    {
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        return $query;
+    }
+
     public function findOneById(string $id): ?User
     {
         return $this->model->find($id);
