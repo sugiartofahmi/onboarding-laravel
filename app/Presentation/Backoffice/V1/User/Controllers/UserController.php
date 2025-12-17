@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Presentation\Backoffice\V1\User\Controllers;
 
 use App\Domain\Backoffice\Permission\Constants\PermissionConstant;
-use App\Domain\Backoffice\Permission\PermissionAttribute;
+use App\Infrastructure\Attributes\PermissionAttribute;
 use App\Domain\Backoffice\User\Messages\UserMessage;
 use App\Domain\Backoffice\User\Requests\UserCreateRequest;
 use App\Domain\Backoffice\User\Requests\UserDeleteRequest;
@@ -14,8 +14,8 @@ use App\Domain\Backoffice\User\Requests\UserShowRequest;
 use App\Domain\Backoffice\User\Requests\UserUpdateRequest;
 use App\Domain\Backoffice\User\Services\UserService;
 use App\Infrastructure\Enums\HttpStatusCode;
-use App\Infrastructure\Responses\ApiDataResponse;
-use App\Infrastructure\Responses\ApiPaginationResponse;
+use App\Infrastructure\Helpers\ApiDataResponse;
+use App\Infrastructure\Helpers\ApiPaginationResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
 
