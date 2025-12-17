@@ -7,7 +7,7 @@ namespace App\Infrastructure\Middlewares;
 use App\Infrastructure\Enums\HttpStatusCode;
 use App\Infrastructure\Exceptions\BadRequestException;
 use App\Infrastructure\Exceptions\BusinessException;
-use App\Infrastructure\Exceptions\DataNotFoundException;
+use App\Infrastructure\Exceptions\DataDataNotFoundException;
 use App\Infrastructure\Exceptions\ForbiddenException;
 use App\Infrastructure\Exceptions\IntegrationException;
 use App\Infrastructure\Exceptions\InternalServiceException;
@@ -81,7 +81,7 @@ class ExceptionHandler
         return match (true) {
             $e instanceof BadRequestException,
             $e instanceof BusinessException => HttpStatusCode::BAD_REQUEST,
-            $e instanceof DataNotFoundException => HttpStatusCode::NOT_FOUND,
+            $e instanceof DataDataNotFoundException => HttpStatusCode::NOT_FOUND,
             $e instanceof UnauthenticatedException,
             $e instanceof AuthenticationException => HttpStatusCode::UNAUTHORIZED,
             $e instanceof ForbiddenException,

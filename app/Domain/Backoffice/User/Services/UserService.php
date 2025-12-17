@@ -17,7 +17,7 @@ use App\Domain\Backoffice\User\Responses\UserShowResponse;
 use App\Domain\Backoffice\User\Responses\UserUpdateResponse;
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
-use App\Infrastructure\Exceptions\NotFoundException;
+use App\Infrastructure\Exceptions\DataNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +47,7 @@ class UserService
         $user = $this->userQueryRepository->findOneByIdWithRoles($id);
 
         if (!$user) {
-            throw new NotFoundException(UserErrorMessage::NOT_FOUND);
+            throw new DataNotFoundException(UserErrorMessage::NOT_FOUND);
         }
 
         $this->auditLogService->logViewEvent(
@@ -94,7 +94,7 @@ class UserService
             $user = $this->userQueryRepository->findOneById($id);
 
             if (!$user) {
-                throw new NotFoundException(UserErrorMessage::NOT_FOUND);
+                throw new DataNotFoundException(UserErrorMessage::NOT_FOUND);
             }
 
             $user = DB::transaction(function () use ($user, $request) {
@@ -135,7 +135,7 @@ class UserService
             $user = $this->userQueryRepository->findOneById($id);
 
             if (!$user) {
-                throw new NotFoundException(UserErrorMessage::NOT_FOUND);
+                throw new DataNotFoundException(UserErrorMessage::NOT_FOUND);
             }
 
             $this->userStoreRepository->delete($user);

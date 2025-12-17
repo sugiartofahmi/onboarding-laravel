@@ -18,7 +18,7 @@ use App\Domain\Backoffice\Permission\Responses\PermissionShowResponse;
 use App\Domain\Backoffice\Permission\Responses\PermissionUpdateResponse;
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Infrastructure\Exceptions\ForbiddenException;
-use App\Infrastructure\Exceptions\NotFoundException;
+use App\Infrastructure\Exceptions\DataNotFoundException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
@@ -75,7 +75,7 @@ class PermissionService
         $permission = $this->permissionQueryRepository->findOneById($id);
 
         if (!$permission) {
-            throw new NotFoundException(PermissionErrorMessage::NOT_FOUND);
+            throw new DataNotFoundException(PermissionErrorMessage::NOT_FOUND);
         }
 
         $this->auditLogService->logViewEvent(
@@ -114,7 +114,7 @@ class PermissionService
             $permission = $this->permissionQueryRepository->findOneById($id);
 
             if (!$permission) {
-                throw new NotFoundException(PermissionErrorMessage::NOT_FOUND);
+                throw new DataNotFoundException(PermissionErrorMessage::NOT_FOUND);
             }
 
             $data = array_filter([
@@ -145,7 +145,7 @@ class PermissionService
             $permission = $this->permissionQueryRepository->findOneById($id);
 
             if (!$permission) {
-                throw new NotFoundException(PermissionErrorMessage::NOT_FOUND);
+                throw new DataNotFoundException(PermissionErrorMessage::NOT_FOUND);
             }
 
             $this->permissionStoreRepository->delete($permission);

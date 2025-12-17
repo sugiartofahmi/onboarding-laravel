@@ -18,7 +18,7 @@ use App\Domain\Backoffice\Product\Repositories\ProductStoreRepository;
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
 use App\Infrastructure\Exceptions\BadRequestException;
-use App\Infrastructure\Exceptions\NotFoundException;
+use App\Infrastructure\Exceptions\DataNotFoundException;
 use App\Infrastructure\Helpers\RedisDistributedLockService;
 use App\Infrastructure\Storage\Services\StorageService;
 use Illuminate\Support\Facades\DB;
@@ -51,7 +51,7 @@ class ProductService
         $product = $this->productQueryRepository->findOneByIdWithCategoryAndImages($id);
 
         if (!$product) {
-            throw new NotFoundException(ProductErrorMessage::NOT_FOUND);
+            throw new DataNotFoundException(ProductErrorMessage::NOT_FOUND);
         }
 
         $this->auditLogService->logViewEvent(
@@ -113,7 +113,7 @@ class ProductService
             $product = $this->productQueryRepository->findOneById($id);
 
             if (!$product) {
-                throw new NotFoundException(ProductErrorMessage::NOT_FOUND);
+                throw new DataNotFoundException(ProductErrorMessage::NOT_FOUND);
             }
 
             $product = DB::transaction(function () use ($product, $request) {
@@ -170,7 +170,7 @@ class ProductService
             $product = $this->productQueryRepository->findOneById($id);
 
             if (!$product) {
-                throw new NotFoundException(ProductErrorMessage::NOT_FOUND);
+                throw new DataNotFoundException(ProductErrorMessage::NOT_FOUND);
             }
 
             $this->productStoreRepository->delete($product);

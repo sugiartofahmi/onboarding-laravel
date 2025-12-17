@@ -17,7 +17,7 @@ use App\Domain\Backoffice\Role\Responses\RoleIndexResponse;
 use App\Domain\Backoffice\Role\Responses\RoleShowResponse;
 use App\Domain\Backoffice\Role\Responses\RoleUpdateResponse;
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
-use App\Infrastructure\Exceptions\NotFoundException;
+use App\Infrastructure\Exceptions\DataNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -46,7 +46,7 @@ class RoleService
         $role = $this->roleQueryRepository->findOneByIdWithPermissions($id);
 
         if (!$role) {
-            throw new NotFoundException(RoleErrorMessage::NOT_FOUND);
+            throw new DataNotFoundException(RoleErrorMessage::NOT_FOUND);
         }
 
         $this->auditLogService->logViewEvent(
@@ -94,7 +94,7 @@ class RoleService
             $role = $this->roleQueryRepository->findOneById($id);
 
             if (!$role) {
-                throw new NotFoundException(RoleErrorMessage::NOT_FOUND);
+                throw new DataNotFoundException(RoleErrorMessage::NOT_FOUND);
             }
 
             $role = DB::transaction(function () use ($role, $request) {
@@ -134,7 +134,7 @@ class RoleService
             $role = $this->roleQueryRepository->findOneById($id);
 
             if (!$role) {
-                throw new NotFoundException(RoleErrorMessage::NOT_FOUND);
+                throw new DataNotFoundException(RoleErrorMessage::NOT_FOUND);
             }
 
             $this->roleStoreRepository->delete($role);

@@ -22,7 +22,7 @@ use App\Domain\Backoffice\StockMovement\Repositories\StockMovementStoreRepositor
 use App\Domain\Backoffice\AuditLog\Enums\AuditLogActionType;
 use App\Domain\Backoffice\AuditLog\Services\AuditLogService;
 use App\Infrastructure\Exceptions\BadRequestException;
-use App\Infrastructure\Exceptions\NotFoundException;
+use App\Infrastructure\Exceptions\DataNotFoundException;
 use App\Infrastructure\Helpers\RedisDistributedLockService;
 use App\Models\SalesOrder;
 use Illuminate\Support\Facades\DB;
@@ -57,7 +57,7 @@ class SalesOrderService
         $salesOrder = $this->salesOrderQueryRepository->findOneByIdWithRelations($id);
 
         if (!$salesOrder) {
-            throw new NotFoundException(SalesOrderErrorMessage::NOT_FOUND);
+            throw new DataNotFoundException(SalesOrderErrorMessage::NOT_FOUND);
         }
 
         $this->auditLogService->logViewEvent(
@@ -109,7 +109,7 @@ class SalesOrderService
                 $product = $this->productQueryRepository->findOneById($item['product_id']);
 
                 if (!$product) {
-                    throw new NotFoundException(ProductErrorMessage::NOT_FOUND);
+                    throw new DataNotFoundException(ProductErrorMessage::NOT_FOUND);
                 }
 
                 if ($product->stock < $item['quantity']) {
@@ -159,7 +159,7 @@ class SalesOrderService
             $salesOrder = $this->salesOrderQueryRepository->findOneById($id);
 
             if (!$salesOrder) {
-                throw new NotFoundException(SalesOrderErrorMessage::NOT_FOUND);
+                throw new DataNotFoundException(SalesOrderErrorMessage::NOT_FOUND);
             }
 
             // Only allow status update
